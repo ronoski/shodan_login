@@ -6,7 +6,7 @@ import re
 import math
 import getpass
 
-SHODAN_API_KEY = "" #input you SHODAN_API_KEY here
+SHODAN_API_KEY = "sRrsvRIMHSDBHeqAnARdfnFB668LDR9Y" #input you SHODAN_API_KEY here
 #use 2 global variables to represent two most recent found ip, in order to avoid dupliacated ips 
 c_ip = None
 prv_ip = None
@@ -23,13 +23,14 @@ def print_ip(text):
 				print ip[0]
 
 
-api = shodan.Shodan(SHODAN_API_KEY)
-n_result = api.count(sys.argv[1])
-
 if len(sys.argv) != 2:
 	print "Usage: python " + sys.argv[0] + " <your_query>" 
 	sys.exit(0)
 else:
+	api = shodan.Shodan(SHODAN_API_KEY)
+	n_result = api.count(sys.argv[1])
+	print "number of results: " + str(n_result['total'])
+
 	equery=urllib.quote_plus(sys.argv[1]) #encode query
 br = mechanize.Browser()
 br.set_handle_robots(False)
@@ -39,17 +40,13 @@ sign_in = br.open("https://account.shodan.io/login")
 br.select_form(nr = 0) 
 
 br["username"] = raw_input("username:")
-br["password"] = getpass.getpass(prompt='password')
+br["password"] = getpass.getpass(prompt='password:')
 logged_in = br.submit()
-#login_r = logged_in.read()   
-#print login_r
 if logged_in.code != 200:
 	print "[!] Login error, Program exit..."
 	sys.exit(0)
 
 else:
-	#go for first page
-	#qurl = "https://www.shodan.io/search?query=VSFTPD+2.3.4&page=2&language=en"
 	qurl = "https://www.shodan.io/search?query=" + equery
 	res = br.open(qurl)
 	if res.code!=200:
@@ -57,6 +54,7 @@ else:
 		sys.exit(0)
 	else:
 		print_ip(str(res.read()))
+
 
 	#remaining pages, note each page has 10 result, and there are n_result['total'] in total
 	max_npages = math.ceil(n_result['total']/10)
